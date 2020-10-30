@@ -2,16 +2,16 @@
 
 set -e
 
-snapctl set usb-path /dev/ttyUSB0
+snapctl set usb-path=/dev/ttyUSB0
 
-snapctl set mqtt.server localhost
-snapctl set mqtt.port 1883
-snapctl set mqtt.username username
-snapctl set mqtt.password password
-snapctl set mqtt.tls false
-snapctl set mqtt.connect-timeout 30
+snapctl set mqtt.server=localhost
+snapctl set mqtt.port=1883
+snapctl set mqtt.username=username
+snapctl set mqtt.password=password
+snapctl set mqtt.tls=false
+snapctl set mqtt.connect-timeout=30
 
-snapctl set stop-on-failure true
+snapctl set stop-on-failure=true
 
 KEY=$(cat /dev/urandom | tr -dc '0-9A-F' | fold -w 32 | head -n 1 | sed -e 's/\(..\)/0x\1, /g' -e 's/, $//')
 
@@ -19,5 +19,5 @@ if [ $? -ne 0 ];
     KEY="0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00"
 fi;
 
-snapctl set ozw.network-key "${KEY}"
-snapctl get ozw.instance 1
+snapctl set ozw.network-key="${KEY}"
+snapctl get ozw.instance=1

@@ -20,7 +20,9 @@ plugs:
 apps:
    ozwdaemon:
      command: bin/wrapper
-     plugs: [network, docker]
+     plugs: 
+      - network
+      - docker
 
 parts:
   ozwdaemon:
@@ -28,4 +30,4 @@ parts:
     source: src/
     organize:
       wrapper: bin/
-      hooks: snap/
+      hooks: snap/hooks
