@@ -28,3 +28,4 @@ parts:
     source: src/
     organize:
       wrapper: bin/
+      hooks: $SNAP/hooks

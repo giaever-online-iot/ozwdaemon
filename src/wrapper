@@ -24,7 +24,7 @@ MQTT_PASSWORD=$(snapctl get mqtt.password)
 MQTT_TLS=$(snapctl get mqtt.tls)
 MQTT_CONNECT_TIMEOUT=$(snapctl get mqtt.connect-timeout)
 STOP_ON_FAILURE=$(snapctl get stop-on-failure)
-OZW_NETWORK_KEY=$(snapctl get ozw.network_key)
+OZW_NETWORK_KEY=$(snapctl get ozw.network-key)
 OZW_INSTANCE=$(snapctl get ozw.instance)
 
 #$SNAP/docker-snap/bin/docker-compose -f $COMPOSE_FILE up -d
