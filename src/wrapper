@@ -16,7 +16,20 @@ fi
 
 COMPOSE_FILE="${SNAP}/services/ozwdaemon/docker-compose.yml"
 
+USB_PATH=$(snapctl get usb-path)
+MQTT_SERVER=$(snapctl get mqtt.server)
+MQTT_PORT=$(snapctl get mqtt.port)
+MQTT_USERNAME=$(snapctl get mqtt.username)
+MQTT_PASSWORD=$(snapctl get mqtt.password)
+MQTT_TLS=$(snapctl get mqtt.tls)
+MQTT_CONNECT_TIMEOUT=$(snapctl get mqtt.connect-timeout)
+STOP_ON_FAILURE=$(snapctl get stop-on-failure)
+OZW_NETWORK_KEY=$(snapctl get ozw.network_key)
+OZW_INSTANCE=$(snapctl get ozw.instance)
+
 #$SNAP/docker-snap/bin/docker-compose -f $COMPOSE_FILE up -d
+
+# ALL IN ONE
 # $SNAP/docker-snap/bin/docker run -it \
 #     --security-opt seccomp=unconfined \
 #     --device=/dev/ttyUSB0 \
