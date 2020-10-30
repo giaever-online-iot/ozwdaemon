@@ -1,6 +1,6 @@
 name: ozwdaemon
 base: core20
-version: '0.1'
+version: '0.2'
 summary: Single-line elevator pitch for your amazing snap # 79 char long summary
 description: |
   This is my-snap's description. You have a paragraph or two to tell the
