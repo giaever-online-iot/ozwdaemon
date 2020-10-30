@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+
+set -e
+
+if ! snapctl is-connected docker-executables; then
+    echo "the docker-executables content interface must be connected first!"
+    echo "please run \"snap connect $SNAP_NAME:docker-executables docker:docker-executables\""
+    exit 1
+fi
+
+if ! snapctl is-connected docker; then
+    echo "the docker socket interface must be connected first!"
+    echo "please run \"snap connect $SNAP_NAME:docker docker:docker-daemon\""
+    exit 1
+fi
+
+COMPOSE_FILE="${SNAP}/services/ozwdaemon/docker-compose.yml"
+
+#$SNAP/docker-snap/bin/docker-compose -f $COMPOSE_FILE up -d
+# $SNAP/docker-snap/bin/docker run -it \
+#     --security-opt seccomp=unconfined \
+#     --device=/dev/ttyUSB0 \
+#     -v $PWD/ozw:/opt/ozw/config \
+#     -e MQTT_SERVER="10.100.200.102" \
+#     -e USB_PATH=/dev/ttyUSB0 \
+#     -p 1983:1983 \
+#     -p 5901:5901 \
+#     -p 7800:7800 \
+#     openzwave/ozwdaemon:allinone-latest
+
+$SNAP/docker-snap/bin/docker "$@"

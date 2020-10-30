@@ -1,0 +1,22 @@
+version: '3'
+services:
+  ozwd:
+    image: openzwave/ozwdaemon:allinone-latest
+    container_name: "ozwd"
+    security_opt:
+      - seccomp:unconfined
+    devices:
+      - "/dev/ttyUSB0"
+    volumes:
+      - ./ozw:/opt/ozw/config
+    ports:
+      - "1983:1983"
+      - "5901:5901"
+      - "7800:7800"
+    environment:
+      MQTT_SERVER: "192.168.0.1"
+      MQTT_USERNAME: "my-username"
+      MQTT_PASSWORD: "my-password"
+      USB_PATH: "/dev/ttyUSB0"
+      OZW_NETWORK_KEY: "0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00"
+    restart: unless-stopped
