@@ -1,6 +1,6 @@
 name: ozwdaemon
 base: core20
-version: '0.2'
+version: '0.1'
 summary: Single-line elevator pitch for your amazing snap # 79 char long summary
 description: |
   This is my-snap's description. You have a paragraph or two to tell the
@@ -11,23 +11,100 @@ description: |
 grade: devel
 confinement: devmode
 
-plugs:
-  docker-executables:
-    interface: content
-    target: $SNAP/docker-snap
-    default-provider: docker
-
 apps:
-   ozwdaemon:
-     command: bin/wrapper
-     plugs: 
+  ozwdaemon:
+    command: usr/local/bin/ozwdaemon
+    command-chain:
+      - bin/env-wrapper
+    plugs:
       - network
-      - docker
+      - network-bind
+      - raw-usb
 
 parts:
-  ozwdaemon:
+  open-zwave:
+    plugin: make
+    source: https://github.com/OpenZWave/open-zwave.git
+  qtmqtt:
+    plugin: make # aka qmake
+    source: https://github.com/qt/qtmqtt.git
+    source-tag: 5.12.8
+    build-packages:
+      - build-essential
+      - qt5-default
+      - qtbase5-private-dev
+    override-build: |
+      if [ -f "Makefile" ]; then
+        echo "Clean $SNAPCRAFT_PART_BUILD"
+        qmake -r
+        make distclean
+      fi
+      qmake
+      make -j$(nproc)
+      make -j$(nproc) install INSTALL_ROOT="${SNAPCRAFT_PART_INSTALL}"
+    stage-packages:
+      - libdouble-conversion3
+      - libfreetype6
+      - libgl1
+      - libglvnd0
+      - libglx0
+      - libgraphite2-3
+      - libharfbuzz0b
+      - libicu66
+      - libpcre2-16-0
+      - libpng16-16
+      - libqt5core5a
+      - libqt5gui5
+      - libqt5network5
+      - libqt5websockets5
+      - libqt5widgets5
+      - libx11-6
+      - libxau6
+      - libxcb1
+      - libxdmcp6
+  qt-openzwave:
+    after: [open-zwave, qtmqtt]
+    plugin: make # aka qmake?
+    source: https://github.com/OpenZWave/qt-openzwave.git
+    build-packages:
+      - build-essential
+      - qt5-default
+      - libqt5websockets5-dev
+      - libqt5remoteobjects5-dev
+      - libqt5remoteobjects5-bin
+      - gcc-8-base
+      - libgcc-8-dev
+      - cmake
+      - pkgconf
+      - libunwind-dev
+      - libcurl4-openssl-dev
+      - rapidjson-dev
+    stage-packages:
+      - libdouble-conversion3
+      - libicu66
+      - libpcre2-16-0
+      - libqt5core5a
+      - libqt5network5
+      - libqt5remoteobjects5
+      - libqt5websockets5
+      - libunwind8
+    override-build: |
+      if [ -f "Makefile" ]; then
+        echo "Clean $SNAPCRAFT_PART_BUILD"
+        qmake -r
+        make distclean
+      fi
+      OZW_LIB_PATH="$(dirname $(find $HOME/parts/open-zwave/install -name libopenzwave.so -print0 -quit))"
+      OZW_INCLUDE_PATH="$(dirname $(find $HOME/parts/open-zwave/install -name Manager.h -print0 -quit))"
+      OZW_DATABASE_PATH="$(dirname $(find $HOME/parts/open-zwave/install -name manufacturer_specific.xml))"
+      qmake -r "CONFIG+=release" \
+          OZW_LIB_PATH="${OZW_LIB_PATH}" \
+          OZW_INCLUDE_PATH="${OZW_INCLUDE_PATH}" \
+          OZW_DATABASE_PATH="${OZW_DATABASE_PATH}"
+      make -j$(nproc)
+      make -j$(nproc) install INSTALL_ROOT="${SNAPCRAFT_PART_INSTALL}"
+  local-src:
+    after: [qt-openzwave]
     plugin: dump
-    source: src/
-    organize:
-      wrapper: bin/
-      hooks: snap/hooks
+    source: ./src
+    source-type: local
