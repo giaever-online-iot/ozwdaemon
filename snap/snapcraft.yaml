@@ -11,6 +11,10 @@ description: |
 grade: devel
 confinement: strict
 
+layout:
+  /usr/local/share/OpenZWave/qt-openzwavedatabase.rcc:
+    bind-file: $SNAP/usr/share/qt5/qt-openzwavedatabase.rcc 
+
 apps:
   ozwdaemon:
     command: usr/local/bin/ozwdaemon
@@ -26,6 +30,7 @@ parts:
     plugin: make
     source: https://github.com/OpenZWave/open-zwave.git
   qtmqtt:
+    after: [open-zwave]
     plugin: make # aka qmake
     source: https://github.com/qt/qtmqtt.git
     source-tag: 5.12.8
@@ -66,7 +71,7 @@ parts:
       - libxcb1
       - libxdmcp6
   qt-openzwave:
-    after: [open-zwave, qtmqtt]
+    after: [qtmqtt]
     plugin: make # aka qmake?
     source: https://github.com/OpenZWave/qt-openzwave.git
     build-packages:
