@@ -3,4 +3,7 @@
 set -e
 # silence is golden.
 
-snapctl restart "${SNAP_NAME}"
+RUNNING=$(snapctl services | grep "${SNAP_NAME}" | wc -l)
+if [ ${RUNNING} -gt 0 ]; then
+    snapctl restart "${SNAP_NAME}"
+fi
