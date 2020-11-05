@@ -116,5 +116,8 @@ parts:
     plugin: dump
     source: ./src
     source-type: local
+    override-build: |
+      snapcraftctl build
+      echo $SNAPCRAFT_PROJECT_DIR
     organize:
       hooks: snap/hooks
