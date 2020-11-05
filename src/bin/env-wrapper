@@ -88,13 +88,16 @@ OZW_ARGS+=(--user-dir "${OZW_USER_DIR}")
 
 set -- "$@" "${OZW_ARGS[@]}"
 
-ARGC=$#
-ARGV=("$@")
-
-echo "Exec: $@"
-echo "Arguments: "
-for ((i = 0; i < ${ARGC}; i++)); do
-    echo "${ARGV[$i]}"
-done
+lprint "Env. variables"
+lprint $(printenv | grep "OZW_")
+lprint $(printenv | grep "MQTT_")
+# ARGC=$#
+# ARGV=("$@")
+#
+lprint "Exec: $@"
+# echo "Arguments: "
+# for ((i = 0; i < ${ARGC}; i++)); do
+#     echo "${ARGV[$i]}"
+# done
 
 exec "$@"

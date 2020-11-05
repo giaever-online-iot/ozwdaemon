@@ -17,6 +17,8 @@ layout:
 
 apps:
   ozwdaemon:
+    # daemon: simple
+    # restart-condition: on-failure
     command: usr/local/bin/ozwdaemon
     command-chain:
       - bin/env-wrapper
