@@ -3,10 +3,98 @@
 set -e
 
 OZW_LIB=$(dirname $(find "${SNAP}/usr/local" -name libopenzwave.so -print -quit))
-echo $LD_LIBRARY_PATH
-echo ""
-
 export LD_LIBRARY_PATH="${OZW_LIB}:${LD_LIBRARY_PATH}"
-echo $LD_LIBRARY_PATH
+
+function lprint {
+    echo ${1}
+    logger "${SNAP_NAME}: ${1}"
+}
+if ! snapctl is-connected raw-usb; then
+    lprint "Please connect raw-usb interface!"
+    lprint "Run: snap connect ${SNAP_NAME}:raw-usb"
+    exit 1
+fi
+
+USB_PATH=$(snapctl get usb-path)
+STOP_ON_FAILURE=$(snapctl get stop-on-failure)
+
+MQTT_SERVER=$(snapctl get mqtt.server)
+MQTT_PORT=$(snapctl get mqtt.port) 
+MQTT_USERNAME=$(snapctl get mqtt.username)
+export MQTT_PASSWORD=$(snapctl get mqtt.password)
+MQTT_TLS=$(snapctl get mqtt.tls)
+
+OZW_INSTANCE=$(snapctl get ozw.instance)
+export OZW_NETWORK_KEY=$(snapctl get ozw.network-key)
+OZW_CONFIG_DIR=$(snapctl get ozw.config-dir)
+OZW_USER_DIR=$(snapctl get ozw.user-dir)
+export OZW_AUTH_KEY=$(snapctl get ozw.auth-key)
+
+if [ ! -c "${USB_PATH}" ]; then 
+    lprint "usb-path (${USB_PATH}) does not exist,"
+    lprint "or is not a Character Device"
+    lprint "See: snap get ${SNAP_NAME} -d usb-path"
+    exit 1
+fi
+OZW_ARGS+=(--serial-port "${USB_PATH}")
+
+if [ ${STOP_ON_FAILURE} == true ]; then
+    OZW_ARGS+=(--stop-on-failure)
+elif [ ${STOP_ON_FAILURE} != false ]; then
+    lprint "Invalid value for stop-on-failure (${STOP_ON_FAILURE})"
+    lprint "See: snap get ${SNAP_NAME} -d stop-on-failure"
+    exit 1
+fi
+
+OZW_ARGS+=(--mqtt-server "${MQTT_SERVER}")
+OZW_ARGS+=(--mqtt-port "${MQTT_PORT}")
+
+if [ ${MQTT_TLS} != false ]; then
+    OZW_ARGS+=(--mqtt-username "${MQTT_USERNAME}")
+fi
+
+if [ ${MQTT_TLS} == true ]; then
+    OZW_ARGS+=(--mqtt-tls)
+elif [ ${MQTT_TLS} != false ]; then
+    lprint "Invalid value for mqtt.tls (${MQTT_TLS})"
+    lprint "See: snap get ${SNAP_NAME} -d mqtt"
+    exit 1
+fi
+
+OZW_ARGS+=(--mqtt-instance "${OZW_INSTANCE}")
+
+if [ ! -d "${OZW_CONFIG_DIR}" ] || [ ! -w "${OZW_CONFIG_DIR}" ]; then
+    lprint "Directory: ${OZW_CONFIG_DIR}"
+    lprint "- Does not exist or not writable."
+    exit 125
+fi
+
+OZW_ARGS+=(--config-dir "${OZW_CONFIG_DIR}")
+
+if [ ! -d "${OZW_USER_DIR}" ] || [ ! -w "${OZW_USER_DIR}" ]; then
+    lprint "Directory: ${OZW_USER_DIR}"
+    lprint "- Does not exist or not writable."
+    exit 126
+fi
+
+OZW_ARGS+=(--user-dir "${OZW_USER_DIR}")
+
+# if ! timeout "${MQTT_CONNECT_TIMEOUT:=30}" \
+#     bash -c "until echo /dev/tcp/${MQTT_SERVER}/${MQTT_PORT}; do sleep 1; done" &>/dev/null
+# then
+#     lprint "Could not connect to the MQTT broker after ${MQTT_CONNECT_TIMEOUT} seconds"
+#     exit 124
+# fi
+
+set -- "$@" "${OZW_ARGS[@]}"
+
+ARGC=$#
+ARGV=("$@")
+
+echo "Exec: $@"
+echo "Arguments: "
+for ((i = 0; i < ${ARGC}; i++)); do
+    echo "${ARGV[$i]}"
+done
 
 exec "$@"

@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+
+set -e
+
+CONFIG_DIR=$(snapctl get ozw.config-dir)
+USER_DIR=$(snapctl get ozw.user-dir)
+
+snapctl set ozw.config-dir=$(echo $CONFIG_DIR | sed -e "s#${SNAP_NAME}/\([x0-9]\+\)#${SNAP_NAME}/${SNAP_REVISION}#g")
+snapctl set ozw.user-dir=$(echo $USER_DIR | sed -e "s#${SNAP_NAME}/\([x0-9]\+\)#${SNAP_NAME}/${SNAP_REVISION}#g")

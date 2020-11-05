@@ -9,7 +9,7 @@ description: |
   store.
 
 grade: devel
-confinement: devmode
+confinement: strict
 
 apps:
   ozwdaemon:
@@ -41,7 +41,10 @@ parts:
       fi
       qmake
       make -j$(nproc)
+      make -j$(nproc) install
       make -j$(nproc) install INSTALL_ROOT="${SNAPCRAFT_PART_INSTALL}"
+    override-prime: |
+      snapcraftctl prime
     stage-packages:
       - libdouble-conversion3
       - libfreetype6
@@ -108,3 +111,5 @@ parts:
     plugin: dump
     source: ./src
     source-type: local
+    organize:
+      hooks: snap/hooks
