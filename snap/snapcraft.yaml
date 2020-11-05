@@ -102,10 +102,16 @@ parts:
         qmake -r
         make distclean
       fi
-      printenv
-      OZW_LIB_PATH="$(dirname $(find ${SNAPCRAFT_PROJECT_DIR}/../parts/open-zwave/install -name libopenzwave.so -print0 -quit))"
-      OZW_INCLUDE_PATH="$(dirname $(find ${SNAPCRAFT_PROJECT_DIR}/../parts/open-zwave/install -name Manager.h -print0 -quit))"
-      OZW_DATABASE_PATH="$(dirname $(find ${SNAPCRAFT_PROJECT_DIR}/../parts/open-zwave/install -name manufacturer_specific.xml))"
+
+      if [ -z ${container+x} ]; then
+        OZW_LIB_PATH="$(dirname $(find /build/open-zwave/install -name libopenzwave.so -print0 -quit))"
+        OZW_INCLUDE_PATH="$(dirname $(find /build/parts/open-zwave/install -name Manager.h -print0 -quit))"
+        OZW_DATABASE_PATH="$(dirname $(find /build/parts/open-zwave/install -name manufacturer_specific.xml))"
+      else
+        OZW_LIB_PATH="$(dirname $(find $HOME/parts/open-zwave/install -name libopenzwave.so -print0 -quit))"
+        OZW_INCLUDE_PATH="$(dirname $(find $HOME/parts/open-zwave/install -name Manager.h -print0 -quit))"
+        OZW_DATABASE_PATH="$(dirname $(find $HOME/parts/open-zwave/install -name manufacturer_specific.xml))"
+      fi
       qmake -r "CONFIG+=release" \
           OZW_LIB_PATH="${OZW_LIB_PATH}" \
           OZW_INCLUDE_PATH="${OZW_INCLUDE_PATH}" \
@@ -117,8 +123,8 @@ parts:
     plugin: dump
     source: ./src
     source-type: local
-    # override-build: |
-    #   snapcraftctl build
-    #   echo $SNAPCRAFT_PROJECT_DIR
+    override-build: |
+      snapcraftctl build
+      echo $SNAPCRAFT_PROJECT_DIR
     organize:
       hooks: snap/hooks
