@@ -102,6 +102,7 @@ parts:
         qmake -r
         make distclean
       fi
+      printenv
       OZW_LIB_PATH="$(dirname $(find ${SNAPCRAFT_PROJECT_DIR}/../parts/open-zwave/install -name libopenzwave.so -print0 -quit))"
       OZW_INCLUDE_PATH="$(dirname $(find ${SNAPCRAFT_PROJECT_DIR}/../parts/open-zwave/install -name Manager.h -print0 -quit))"
       OZW_DATABASE_PATH="$(dirname $(find ${SNAPCRAFT_PROJECT_DIR}/../parts/open-zwave/install -name manufacturer_specific.xml))"

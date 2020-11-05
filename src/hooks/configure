@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+
+set -e
+# silence is golden.
+
+snapctl restart "${SNAP_NAME}"
