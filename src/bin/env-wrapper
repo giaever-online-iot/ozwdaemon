@@ -58,7 +58,7 @@ for ((i = 0; i < $#; i++)); do
     fi
 done
 
-if [ $(snapctl services ozwdaemon | grep active | wc -l) -gt 0 -a ${OPT_HELP} = false ]; then
+if [ $(snapctl services ozwdaemon | grep inactive | wc -l) -eq 0 -a ${OPT_HELP} = false ]; then
     lprint "Service already running, showing help text."
     lprint "Use: 'snap stop ${SNAP_NAME}' to stop the service and'"
     lprint "to execute the ozwdaemon manually"
