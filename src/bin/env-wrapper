@@ -52,7 +52,6 @@ OPT_HELP=false
 ARGV=( "$@" )
 for ((i = 0; i < $#; i++)); do
     OPT="${ARGV[$i]}"
-
     if [ "${OPT}" = "--help" ]; then
         OPT_HELP=true
     fi
