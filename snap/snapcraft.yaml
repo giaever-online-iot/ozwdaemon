@@ -1,12 +1,20 @@
 name: ozwdaemon
 base: core20
-version: '0.1'
-summary: Single-line elevator pitch for your amazing snap # 79 char long summary
+adopt-info: set-version
+summary: "QT Wrapper for OpenZWave. Remotely manage a Z-Wave Network."
 description: |
-  This is my-snap's description. You have a paragraph or two to tell the
-  most important story about your snap. Keep it under 100 words though,
-  we live in tweetspace and your description wants to look good in the snap
-  store.
+  A dedicated snap package that contains only the ozwdaemon service. 
+
+  This snap contains only the ozwdaemon application and none of the management tools. Use Home Assistant or OZW Admin to connect to it.
+
+  NOTE! To add secure devices through Home Assistant, you have to make service calls, with the payload:
+  {
+    "secure": true,
+    "instance_id": <id given in configuration>
+  }
+  This is an issue with the OpenZWave integration of Home Assistant and will hopefully be fixed in the future.
+
+  See `snap get ozwdaemon -d` for configuration options.
 
 grade: devel
 confinement: strict
@@ -17,8 +25,16 @@ layout:
 
 apps:
   ozwdaemon:
-    # daemon: simple
-    # restart-condition: on-failure
+    daemon: simple
+    restart-condition: on-failure
+    command: usr/local/bin/ozwdaemon
+    command-chain:
+      - bin/env-wrapper
+    plugs:
+      - network
+      - network-bind
+      - raw-usb
+  exec:
     command: usr/local/bin/ozwdaemon
     command-chain:
       - bin/env-wrapper
@@ -123,8 +139,19 @@ parts:
     plugin: dump
     source: ./src
     source-type: local
-    # override-build: |
-    #   snapcraftctl build
-    #   echo $SNAPCRAFT_PROJECT_DIR
+    stage-packages:
+      - coreutils
+      - netcat-openbsd
     organize:
       hooks: snap/hooks
+  set-version:
+    after: [qt-openzwave]
+    plugin: nil
+    override-build: |
+      set -ex
+      LIBQT_OZW=$(dirname "$(find ~/prime -name libqt-openzwave.so.1 -print -quit)")
+      LIB_OZW=$(dirname "$(find ~/prime -name libopenzwave.so* -print -quit)")
+      export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$LIBQT_OZW:$LIB_OZW
+      OZWD=$(find ~/prime -name ozwdaemon -print -quit)
+      VERSION=$($OZWD --version | cut -f2 -d ' ')
+      snapcraftctl set-version "${VERSION}"

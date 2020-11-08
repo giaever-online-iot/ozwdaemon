@@ -3,6 +3,27 @@
 set -e
 # silence is golden.
 
+CONF_DIR=$(snapctl get ozw.config-dir)
+USER_DIR=$(snapctl get ozw.user-dir)
+
+if [ ! -d "${CONF_DIR}" -a ! -w "${CONF_DIR}" ]; then
+    echo "Insufficient priviliges for ${CONF_DIR}."
+    echo "Check that the directory exists and that it's writable."
+    echo "Directory should be a sub-dir of either"
+    echo "- ${SNAP_DATA}"
+    echo "- ${SNAP_USER_DATA}"
+    exit 1
+fi
+
+if [ ! -d "${USER_DIR}" -a ! -w "${USER_DIR}" ]; then
+    echo "Insufficient priviliges for ${USER_DIR}."
+    echo "Check that the directory exists and that it's writable."
+    echo "Directory should be a sub-dir of either"
+    echo "- ${SNAP_DATA}"
+    echo "- ${SNAP_USER_DATA}"
+    exit 1
+fi
+
 RUNNING=$(snapctl services | grep "${SNAP_NAME}" | wc -l)
 if [ ${RUNNING} -gt 0 ]; then
     snapctl restart "${SNAP_NAME}"

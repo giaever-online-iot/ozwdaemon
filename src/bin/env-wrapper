@@ -9,6 +9,7 @@ function lprint {
     echo ${1}
     logger "${SNAP_NAME}: ${1}"
 }
+
 if ! snapctl is-connected raw-usb; then
     lprint "Please connect raw-usb interface!"
     lprint "Run: snap connect ${SNAP_NAME}:raw-usb"
@@ -21,14 +22,23 @@ STOP_ON_FAILURE=$(snapctl get stop-on-failure)
 MQTT_SERVER=$(snapctl get mqtt.server)
 MQTT_PORT=$(snapctl get mqtt.port) 
 MQTT_USERNAME=$(snapctl get mqtt.username)
-export MQTT_PASSWORD=$(snapctl get mqtt.password)
+MQTT_PASSWORD=$(snapctl get mqtt.password)
+
+if [ ${MQTT_PASSWORD:=false} != false ]; then
+    export MQTT_PASSWORD;
+fi
+
 MQTT_TLS=$(snapctl get mqtt.tls)
 
 OZW_INSTANCE=$(snapctl get ozw.instance)
 export OZW_NETWORK_KEY=$(snapctl get ozw.network-key)
 OZW_CONFIG_DIR=$(snapctl get ozw.config-dir)
 OZW_USER_DIR=$(snapctl get ozw.user-dir)
-export OZW_AUTH_KEY=$(snapctl get ozw.auth-key)
+OZW_AUTH_KEY=$(snapctl get ozw.auth-key)
+
+if [ ${OZW_AUTH_KEY:=false} != false ]; then
+    export OZW_AUTH_KEY
+fi
 
 if [ ! -c "${USB_PATH}" ]; then 
     lprint "usb-path (${USB_PATH}) does not exist,"
@@ -36,68 +46,115 @@ if [ ! -c "${USB_PATH}" ]; then
     lprint "See: snap get ${SNAP_NAME} -d usb-path"
     exit 1
 fi
-OZW_ARGS+=(--serial-port "${USB_PATH}")
 
-if [ ${STOP_ON_FAILURE} == true ]; then
-    OZW_ARGS+=(--stop-on-failure)
-elif [ ${STOP_ON_FAILURE} != false ]; then
-    lprint "Invalid value for stop-on-failure (${STOP_ON_FAILURE})"
-    lprint "See: snap get ${SNAP_NAME} -d stop-on-failure"
-    exit 1
+OPT_HELP=false
+
+ARGV=( "$@" )
+for ((i = 0; i < $#; i++)); do
+    OPT="${ARGV[$i]}"
+
+    if [ "${OPT}" = "--help" ]; then
+        OPT_HELP=true
+    fi
+done
+
+if [ $(snapctl services ozwdaemon | grep active | wc -l) -gt 0 -a ${OPT_HELP} = false ]; then
+    lprint "Service already running, showing help text."
+    lprint "Use: 'snap stop ${SNAP_NAME}' to stop the service and'"
+    lprint "to execute the ozwdaemon manually"
+    echo ""
+    OPT_HELP=true
 fi
 
-OZW_ARGS+=(--mqtt-server "${MQTT_SERVER}")
-OZW_ARGS+=(--mqtt-port "${MQTT_PORT}")
+if [ ${OPT_HELP} = false ]; then
+    OZW_ARGS+=(--serial-port "${USB_PATH}")
 
-if [ ${MQTT_TLS} != false ]; then
-    OZW_ARGS+=(--mqtt-username "${MQTT_USERNAME}")
+    if [ ${STOP_ON_FAILURE} == true ]; then
+        OZW_ARGS+=(--stop-on-failure)
+    elif [ ${STOP_ON_FAILURE} != false ]; then
+        lprint "Invalid value for stop-on-failure (${STOP_ON_FAILURE})"
+        lprint "See: snap get ${SNAP_NAME} -d stop-on-failure"
+        exit 1
+    fi
+
+    OZW_ARGS+=(--mqtt-server "${MQTT_SERVER}")
+    OZW_ARGS+=(--mqtt-port "${MQTT_PORT}")
+
+    if [ ${MQTT_USERNAME} != false ]; then
+        OZW_ARGS+=(--mqtt-username "${MQTT_USERNAME}")
+    fi
+
+    if [ ${MQTT_TLS} == true ]; then
+        OZW_ARGS+=(--mqtt-tls)
+    elif [ ${MQTT_TLS} != false ]; then
+        lprint "Invalid value for mqtt.tls (${MQTT_TLS})"
+        lprint "See: snap get ${SNAP_NAME} -d mqtt"
+        exit 1
+    fi
+
+    OZW_ARGS+=(--mqtt-instance "${OZW_INSTANCE}")
+
+    if [ ! -d "${OZW_CONFIG_DIR}" ] || [ ! -w "${OZW_CONFIG_DIR}" ]; then
+        lprint "Directory: ${OZW_CONFIG_DIR}"
+        lprint "- Does not exist or not writable."
+        exit 125
+    fi
+
+    OZW_ARGS+=(--config-dir "${OZW_CONFIG_DIR}")
+
+    if [ ! -d "${OZW_USER_DIR}" ] || [ ! -w "${OZW_USER_DIR}" ]; then
+        lprint "Directory: ${OZW_USER_DIR}"
+        lprint "- Does not exist or not writable."
+        exit 126
+    fi
+
+    OZW_ARGS+=(--user-dir "${OZW_USER_DIR}")
+
+    lprint "Waiting ${MQTT_CONNECT_TIMEOUT:=30} seconds for MQTT connection"
+    if ! timeout "${MQTT_CONNECT_TIMEOUT:=30}" \
+        bash -c "until "${SNAP}/bin/nc.openbsd" -zv "${MQTT_SERVER}" "${MQTT_PORT}"; do sleep 1; done" &>/dev/null; then 
+        lprint "Could not connect to MQTT on ${MQTT_SERVER}:${MQTT_PORT} after 30 seconds"; 
+        exit 1;
+    fi
+    lprint "MQTT seems to be up on ${MQTT_SERVER}:${MQTT_PORT}"
+
+    set -- "$@" "${OZW_ARGS[@]}"
+else
+    echo "QT OpenZWave Remote Daemon ($($SNAP/usr/local/bin/ozwdaemon --version))"
+    echo ""
+    echo "- usb-path:               $(snapctl get "usb-path")"
+    echo "- stop-on-failure:        $(snapctl get "stop-on-failure")"
+    echo ""
+    echo "MQTT-configuration values: $(snapctl get "mqtt")"
+    echo ""
+    echo "- mqtt.connect-timeout:   Seconds to wait for MQTT to be up"
+    echo "- mqtt.server:            MQTT server hostname or IP"
+    echo "- mqtt.port:              MQTT server port"
+    echo "- mqtt.tls:               Enable TLF encryption to MQTT"
+    echo "- mqtt.username:          MQTT login username"
+    echo "- mqtt.password:          MQTT login password"
+    echo ""
+    echo "OpenZWave-configuration values: $(snapctl get "ozw")"
+    echo ""
+    echo "- ozw.auth-key:           Remote management (ozw-admin) authorization key"
+    echo "- ozw.config-dir:         Directory containing the OZW Config Files"
+    echo "- ozw.user-dir:           Directory for the OZW User Files"
+    echo "- ozw.instance:           OpenZWave Instance Number"
+    echo "- ozw.network-key:        The Network Key to secure communications with your devices (that are included Securely)."
+    echo "                          DO NOT LOSE THIS KEY OTHERWISE YOU WILL HAVE TO REINCLUDE YOUR SECURED DEVICES."
+    echo "                          The default key is auto-generated on installation, and is unique."
+    echo ""
+    echo "Set options with:     snap set ${SNAP_NAME} param=key"
+    echo "For example:          snap set ${SNAP_NAME} mqtt.server=localhost"
+    echo ""
+    echo "Also see 'snap info ${SNAP_NAME}' for information about secure devices."
+    echo ""
+    echo "Follow log with"
+    echo "'sudo journalctl -xef --identifier=${SNAP_NAME}.${SNAP_NAME}'"
+    exit 0
 fi
 
-if [ ${MQTT_TLS} == true ]; then
-    OZW_ARGS+=(--mqtt-tls)
-elif [ ${MQTT_TLS} != false ]; then
-    lprint "Invalid value for mqtt.tls (${MQTT_TLS})"
-    lprint "See: snap get ${SNAP_NAME} -d mqtt"
-    exit 1
-fi
 
-OZW_ARGS+=(--mqtt-instance "${OZW_INSTANCE}")
-
-if [ ! -d "${OZW_CONFIG_DIR}" ] || [ ! -w "${OZW_CONFIG_DIR}" ]; then
-    lprint "Directory: ${OZW_CONFIG_DIR}"
-    lprint "- Does not exist or not writable."
-    exit 125
-fi
-
-OZW_ARGS+=(--config-dir "${OZW_CONFIG_DIR}")
-
-if [ ! -d "${OZW_USER_DIR}" ] || [ ! -w "${OZW_USER_DIR}" ]; then
-    lprint "Directory: ${OZW_USER_DIR}"
-    lprint "- Does not exist or not writable."
-    exit 126
-fi
-
-OZW_ARGS+=(--user-dir "${OZW_USER_DIR}")
-
-# if ! timeout "${MQTT_CONNECT_TIMEOUT:=30}" \
-#     bash -c "until echo /dev/tcp/${MQTT_SERVER}/${MQTT_PORT}; do sleep 1; done" &>/dev/null
-# then
-#     lprint "Could not connect to the MQTT broker after ${MQTT_CONNECT_TIMEOUT} seconds"
-#     exit 124
-# fi
-
-set -- "$@" "${OZW_ARGS[@]}"
-
-lprint "Env. variables"
-lprint $(printenv | grep "OZW_")
-lprint $(printenv | grep "MQTT_")
-# ARGC=$#
-# ARGV=("$@")
-#
 lprint "Exec: $@"
-# echo "Arguments: "
-# for ((i = 0; i < ${ARGC}; i++)); do
-#     echo "${ARGV[$i]}"
-# done
 
 exec "$@"

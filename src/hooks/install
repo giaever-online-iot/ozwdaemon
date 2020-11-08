@@ -16,7 +16,7 @@ snapctl set ozw.instance=1
 snapctl set ozw.network-key="$(cat /dev/urandom | LC_ALL=C tr -dc '0-9A-F' | fold -w 32 | head -n 1 | sed -e 's/\(..\)/0x\1,/g' -e 's/,$//')"
 snapctl set ozw.config-dir="${SNAP_DATA}/config"
 snapctl set ozw.user-dir="${SNAP_DATA}/user"
-snapctl set ozw.auth-key=false
+snapctl set ozw.auth-key=""
 
 mkdir "${SNAP_DATA}/config"
 mkdir "${SNAP_DATA}/user"
