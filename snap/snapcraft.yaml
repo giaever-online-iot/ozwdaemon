@@ -155,7 +155,8 @@ parts:
       fi
       LIBQT_OZW=$(dirname "$(find ${INSTALL_PATH} -name libqt-openzwave.so.1 -print -quit)")
       LIB_OZW=$(dirname "$(find ${INSTALL_PATH} -name libopenzwave.so* -print -quit)")
-      export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$LIBQT_OZW:$LIB_OZW
+      LIB_OZWDB=$(dirname "$(find ${INSTALL_ROOT} -name libqt-openzwavedatabase.so.1 -print -quit)")
+      export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$LIBQT_OZW:$LIB_OZW:$LIB_OZWDB
       OZWD=$(find ${INSTALL_PATH} -type f -name ozwdaemon -print -quit)
       VERSION=$($OZWD --version | cut -f2 -d ' ')
       snapcraftctl set-version "${VERSION}"
