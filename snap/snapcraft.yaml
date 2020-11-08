@@ -149,9 +149,13 @@ parts:
     plugin: nil
     override-build: |
       set -ex
-      LIBQT_OZW=$(dirname "$(find ~/prime -name libqt-openzwave.so.1 -print -quit)")
-      LIB_OZW=$(dirname "$(find ~/prime -name libopenzwave.so* -print -quit)")
+      INSTALL_PATH="${HOME}"
+      if [ ! -z ${container+x} ]; then
+        INSTALL_PATH="/build/${SNAPCRAFT_PROJECT_NAME}"
+      fi
+      LIBQT_OZW=$(dirname "$(find ${INSTALL_PATH}/prime -name libqt-openzwave.so.1 -print -quit)")
+      LIB_OZW=$(dirname "$(find ${INSTALL_PATH}/prime -name libopenzwave.so* -print -quit)")
       export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$LIBQT_OZW:$LIB_OZW
-      OZWD=$(find ~/prime -name ozwdaemon -print -quit)
+      OZWD=$(find ${INSTALL_PATH}/prime -name ozwdaemon -print -quit)
       VERSION=$($OZWD --version | cut -f2 -d ' ')
       snapcraftctl set-version "${VERSION}"
