@@ -40,13 +40,6 @@ if [ ${OZW_AUTH_KEY:=false} != false ]; then
     export OZW_AUTH_KEY
 fi
 
-if [ ! -c "${USB_PATH}" ]; then 
-    lprint "usb-path (${USB_PATH}) does not exist,"
-    lprint "or is not a Character Device"
-    lprint "See: snap get ${SNAP_NAME} -d usb-path"
-    exit 1
-fi
-
 OPT_HELP=false
 
 ARGV=( "$@" )
@@ -66,6 +59,13 @@ if [ $(snapctl services ozwdaemon | grep inactive | wc -l) -eq 0 -a ${OPT_HELP} 
 fi
 
 if [ ${OPT_HELP} = false ]; then
+    if [ ! -c "${USB_PATH}" ]; then 
+        lprint "usb-path (${USB_PATH}) does not exist,"
+        lprint "or is not a Character Device"
+        lprint "See: snap get ${SNAP_NAME} -d usb-path"
+        exit 1
+    fi
+
     OZW_ARGS+=(--serial-port "${USB_PATH}")
 
     if [ ${STOP_ON_FAILURE} == true ]; then
