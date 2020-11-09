@@ -16,7 +16,7 @@ description: |
 
   See `snap get ozwdaemon -d` for configuration options.
 
-grade: devel
+grade: stable
 confinement: strict
 
 layout:
