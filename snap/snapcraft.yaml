@@ -35,7 +35,7 @@ apps:
       - network-bind
       - raw-usb
   exec:
-    command: usr/local/bin/ozwdaemon
+    command: usr/local/bin/ozwdaemon --exec
     command-chain:
       - bin/env-wrapper
     plugs:

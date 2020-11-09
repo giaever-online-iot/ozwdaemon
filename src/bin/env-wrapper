@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-set -ex
+set -e
 
 OZW_LIB=$(dirname $(find "${SNAP}/usr/local" -name libopenzwave.so -print -quit))
 export LD_LIBRARY_PATH="${OZW_LIB}:${LD_LIBRARY_PATH}"
@@ -50,13 +50,22 @@ for ((i = 0; i < $#; i++)); do
     fi
 done
 
+
 if [ $(snapctl services ozwdaemon | grep inactive | wc -l) -eq 0 -a ${OPT_HELP} = false ]; then
-    lprint "Service already running, showing help text."
-    lprint "Use: 'snap stop ${SNAP_NAME}' to stop the service and'"
-    lprint "to execute the ozwdaemon manually"
     echo ""
-    OPT_HELP=true
+    for ARG in "${ARGV[@]}"; do
+        shift
+        if [ "${ARG}" = "--exec" ]; then
+            lprint "Service already running, showing help text."
+            lprint "Use: 'snap stop ${SNAP_NAME}' to stop the service and'"
+            lprint "to execute the ozwdaemon manually"
+            OPT_HELP=true
+            continue
+        fi
+        set -- "$@" "${ARG}"
+    done
 fi
+
 
 if [ ${OPT_HELP} = false ]; then
     if [ ! -c "${USB_PATH}" ]; then 
@@ -119,7 +128,7 @@ if [ ${OPT_HELP} = false ]; then
 
     set -- "$@" "${OZW_ARGS[@]}"
 else
-    echo "QT OpenZWave Remote Daemon ($($SNAP/usr/local/bin/ozwdaemon --version))"
+    echo "QT OpenZWave Remote Daemon ($($1 --version))"
     echo ""
     echo "- usb-path:               $(snapctl get "usb-path")"
     echo "- stop-on-failure:        $(snapctl get "stop-on-failure")"
