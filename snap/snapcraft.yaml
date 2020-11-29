@@ -133,9 +133,10 @@ parts:
       if [ ! -z ${container+x} ]; then
         INSTALL_PATH="/build/${SNAPCRAFT_PROJECT_NAME}"
       fi
-      OZW_LIB_PATH="$(dirname $(find ${INSTALL_PATH}/parts/open-zwave/install -name libopenzwave.so -print0 -quit))"
-      OZW_INCLUDE_PATH="$(dirname $(find ${INSTALL_PATH}/parts/open-zwave/install -name Manager.h -print0 -quit))"
-      OZW_DATABASE_PATH="$(dirname $(find ${INSTALL_PATH}/parts/open-zwave/install -name manufacturer_specific.xml))"
+      OZW_INSTALL_PATH="${INSTALL_PATH}/parts/open-zwave/install"
+      OZW_LIB_PATH="$(dirname $(find ${OZW_INSTALL_PATH} -name libopenzwave.so -print0 -quit))"
+      OZW_INCLUDE_PATH="$(dirname $(find ${OZW_INSTALL_PATH} -name Manager.h -print0 -quit))"
+      OZW_DATABASE_PATH="$(dirname $(find ${OZW_INSTALL_PATH} -name manufacturer_specific.xml))"
       qmake -r "CONFIG+=release" \
           OZW_LIB_PATH="${OZW_LIB_PATH}" \
           OZW_INCLUDE_PATH="${OZW_INCLUDE_PATH}" \
