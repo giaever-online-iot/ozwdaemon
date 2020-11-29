@@ -24,7 +24,7 @@ if [ ! -d "${USER_DIR}" -a ! -w "${USER_DIR}" ]; then
     exit 1
 fi
 
-RUNNING=$(snapctl services | grep "${SNAP_NAME}" | wc -l)
-if [ ${RUNNING} -gt 0 ]; then
+RUNNING=$(snapctl services | grep "${SNAP_NAME}" | grep inactive | wc -l)
+if [ ${RUNNING} -eq 0 ]; then
     snapctl restart "${SNAP_NAME}"
 fi

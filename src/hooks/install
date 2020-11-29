@@ -20,3 +20,5 @@ snapctl set ozw.auth-key=""
 
 mkdir "${SNAP_DATA}/config"
 mkdir "${SNAP_DATA}/user"
+
+snapctl stop --disable "${SNAP_NAME}.${SNAP_NAME}"

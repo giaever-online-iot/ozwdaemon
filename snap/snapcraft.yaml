@@ -8,10 +8,12 @@ description: |
   This snap contains only the ozwdaemon application and none of the management tools. Use Home Assistant or OZW Admin to connect to it.
 
   NOTE! To add secure devices through Home Assistant, you have to make service calls, with the payload:
+  ```
   {
     "secure": true,
     "instance_id": <id given in configuration>
   }
+  ```
   This is an issue with the OpenZWave integration of Home Assistant and will hopefully be fixed in the future.
 
   See `snap get ozwdaemon -d` for configuration options.
@@ -34,6 +36,12 @@ apps:
       - network
       - network-bind
       - raw-usb
+  enable:
+    command: bin/daemonize
+  disable:
+    command: bin/de-daemonize
+  restart:
+    command: bin/restart
   exec:
     command: usr/local/bin/ozwdaemon --exec
     command-chain:

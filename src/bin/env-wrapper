@@ -45,7 +45,7 @@ OPT_HELP=false
 ARGV=( "$@" )
 for ((i = 0; i < $#; i++)); do
     OPT="${ARGV[$i]}"
-    if [ "${OPT}" = "--help" ]; then
+    if [ "${OPT}" = "--help" -o "${OPT}" = '-h' ]; then
         OPT_HELP=true
     fi
 done
@@ -69,8 +69,7 @@ fi
 
 if [ ${OPT_HELP} = false ]; then
     if [ ! -c "${USB_PATH}" ]; then 
-        lprint "usb-path (${USB_PATH}) does not exist,"
-        lprint "or is not a Character Device"
+        lprint "usb-path (${USB_PATH}) does not exist, or is not a Character Device."
         lprint "See: snap get ${SNAP_NAME} -d usb-path"
         exit 1
     fi
@@ -124,12 +123,19 @@ if [ ${OPT_HELP} = false ]; then
         lprint "Could not connect to MQTT on ${MQTT_SERVER}:${MQTT_PORT} after 30 seconds"; 
         exit 1;
     fi
-    lprint "MQTT seems to be up on ${MQTT_SERVER}:${MQTT_PORT}"
-
     set -- "$@" "${OZW_ARGS[@]}"
 else
     echo "QT OpenZWave Remote Daemon ($($1 --version))"
     echo ""
+    echo "IMPORTANT! The DAEMON/SERVICE is disabled by default after installation." 
+    echo "You have to manually 'daemonize' OpenZWave Daemon with executing the command"
+    echo ""
+    echo "$ ozwdaemon.enable"
+    echo ""
+    echo "But first set your configuration as descrived below and run ${SNAP_NAME}.exec"
+    echo "until ${SNAP_NAME} boots and runs successfully. "
+    echo ""
+    echo "Base configuration values:"
     echo "- usb-path:               $(snapctl get "usb-path")"
     echo "- stop-on-failure:        $(snapctl get "stop-on-failure")"
     echo ""
@@ -152,17 +158,18 @@ else
     echo "                          DO NOT LOSE THIS KEY OTHERWISE YOU WILL HAVE TO REINCLUDE YOUR SECURED DEVICES."
     echo "                          The default key is auto-generated on installation, and is unique."
     echo ""
-    echo "Set options with:     snap set ${SNAP_NAME} param=key"
-    echo "For example:          snap set ${SNAP_NAME} mqtt.server=localhost"
+    echo "Set options with:         $ snap set ${SNAP_NAME} param=key"
+    echo "For example:              $ snap set ${SNAP_NAME} mqtt.server=localhost"
     echo ""
     echo "Also see 'snap info ${SNAP_NAME}' for information about secure devices."
     echo ""
-    echo "Follow log with"
-    echo "'sudo journalctl -xef --identifier=${SNAP_NAME}.${SNAP_NAME}'"
+    echo "Follow the log with"
+    echo "$ snap logs ozwdaemon"
+    echo ""
+    echo "Other commands"
+    echo "Disable the daemon:       $ ozwdaemon.disable"
+    echo "Restart the daemon:       $ ozwdaemon.restart"
     exit 0
 fi
-
-
-lprint "Exec: $@"
 
 exec "$@"
