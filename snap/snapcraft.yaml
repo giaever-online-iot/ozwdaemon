@@ -21,10 +21,6 @@ description: |
 grade: stable
 confinement: strict
 
-layout:
-  /usr/local/share/OpenZWave/qt-openzwavedatabase.rcc:
-    bind-file: $SNAP/usr/share/qt5/qt-openzwavedatabase.rcc 
-
 apps:
   ozwdaemon:
     daemon: simple
@@ -50,6 +46,16 @@ apps:
       - network
       - network-bind
       - raw-usb
+layout:
+  /usr/local/share/OpenZWave/qt-openzwavedatabase.rcc:
+    bind-file: $SNAP/usr/share/qt5/qt-openzwavedatabase.rcc 
+
+slots:
+  qt-ozw-lib:
+    interface: content
+    content: qt-ozw-lib
+    read: 
+      - $SNAP/usr/lib
 
 parts:
   open-zwave:
