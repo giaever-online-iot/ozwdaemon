@@ -51,6 +51,16 @@ layout:
     bind-file: $SNAP/usr/share/qt5/qt-openzwavedatabase.rcc 
 
 slots:
+  ozw-configuration:
+    interface: content
+    content: ozw-configuration
+    read:
+      - $SNAP/usr/usr/local/etc/openzwave
+  qt-ozw-db:
+    interface: content
+    content: ozw-db
+    read:
+      - $SNAP/usr/share/qt5
   qt-ozw-lib:
     interface: content
     content: qt-ozw-lib
