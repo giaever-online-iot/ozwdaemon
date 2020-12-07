@@ -116,7 +116,8 @@ parts:
   qt-openzwave:
     after: [open-zwave, qtmqtt]
     plugin: make # aka qmake?
-    source: https://github.com/OpenZWave/qt-openzwave.git
+    #source: https://github.com/OpenZWave/qt-openzwave.git
+    source: https://github.com/home-assistant-snap/qt-openzwave.git
     build-packages:
       - build-essential
       - qt5-default
